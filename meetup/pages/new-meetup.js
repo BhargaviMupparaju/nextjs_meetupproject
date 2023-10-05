@@ -1,7 +1,8 @@
 //our-domain.com/new-meetup
 import NewMeetupForm from "/components/meetups/NewMeetupForm";
 import { useRouter } from "next/router";
-
+import { Fragment } from "react";
+import Head from "next/head";
 async function NewMeetupPage() {
 	async function addMeetUpHandler(enteredMeetupData) {
 		// now we want to send the request to the API route with the enteredmeetupdata from the form.
@@ -23,7 +24,15 @@ async function NewMeetupPage() {
 		console.log(data);
 	}
 
-	return <NewMeetupForm onAddMeetup={addMeetUpHandler} />;
+	return (
+		<Fragment>
+			<Head>
+				<title>Add a new Meetup</title>
+				<meta name="description" content="Add your own meetups" />
+			</Head>
+			<NewMeetupForm onAddMeetup={addMeetUpHandler} />{" "}
+		</Fragment>
+	);
 }
 
 export default NewMeetupPage;

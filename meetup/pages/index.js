@@ -1,8 +1,16 @@
 import MeetupList from "@/components/meetups/MeetupList";
 import { MongoClient } from "mongodb";
-
+import Head from "next/head";
+import { Fragment } from "react";
 function HomePage(props) {
-	return <MeetupList meetups={props.meetups} />;
+	return;
+	<Fragment>
+		<Head>
+			<title>React Meetups</title>
+			<meta name="description" content="Browse a huge list of active meetups" />
+		</Head>
+		<MeetupList meetups={props.meetups} />;
+	</Fragment>;
 }
 // SSG- static generation . here we will generate the data on server side and
 // send the data to the client as html.
