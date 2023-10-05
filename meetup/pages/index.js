@@ -1,34 +1,30 @@
 import MeetupList from "@/components/meetups/MeetupList";
-const DUMMY_MEETUPS = [
-	{
-		id: "m1",
-		title: "First Meetup",
-		image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Massachusetts_Hall%2C_Harvard_University.JPG/640px-Massachusetts_Hall%2C_Harvard_University.JPG",
-		address: "Alycia Dr, Richmomd",
-		description: "This is a fisrt meetup",
-	},
-
-	{
-		id: "m2",
-		title: "Second Meetup",
-		image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Pyne_Hall%2C_Princeton_University.jpg/1024px-Pyne_Hall%2C_Princeton_University.jpg",
-		address: "Princeton, New Jersey",
-		description: "This is a second meetup",
-	},
-];
+import { MongoClient } from "mongodb";
 
 function HomePage(props) {
-	return <MeetupList meetups={DUMMY_MEETUPS} />;
+	return <MeetupList meetups={props.meetups} />;
 }
 // SSG- static generation . here we will generate the data on server side and
 // send the data to the client as html.
 
 export async function getStaticProps() {
+	const client = await MongoClient.connect("mongodb+srv://bhargavi:maruthi@cluster0.xdp8woi.mongodb.net/meetups?retryWrites=true&w=majority");
+	const db = client.db();
+	const meetupsCollection = db.collection("meetups");
+
+	const meetups = meetupsCollection.find().toArray();
+
+	client.close();
 	return {
 		props: {
-			meetups: DUMMY_MEETUPS,
+			meetups: (await meetups).map((meetup) => ({
+				title: meetup.title,
+				address: meetup.address,
+				image: meetup.image,
+				id: meetup._id.toString(),
+			})),
 		},
-		revalidate: 10,
+		revalidate: 1,
 	};
 }
 
@@ -47,6 +43,5 @@ export async function getStaticProps() {
 // 		},
 // 	};
 // }
-
 
 export default HomePage;
