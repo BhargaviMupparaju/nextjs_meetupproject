@@ -1,40 +1,47 @@
-import { Fragment } from "react";
+import { Fragment, Objec } from "react";
 import MeetupDetail from "../components/meetups/MeetupDetail";
-import { analyticsId } from "@/next.config";
+import { MongoClient, ObjectId } from "mongodb";
 function MeetupDetails() {
-	return <MeetupDetail image="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Massachusetts_Hall%2C_Harvard_University.JPG/640px-Massachusetts_Hall%2C_Harvard_University.JPG" title="First Meetup" address="Alycia Dr, Richmomd" description="This is a fisrt meetup" />;
+	return <MeetupDetail image={props.meetupData.image} title={props.meetupData.title} address={props.meetupData.address} description={props.meetupData.description} />;
 }
 
-export async function getStaticPaths() { // this function tells the react js with which parameters the dynamic pages should be pre-generated.
+export async function getStaticPaths() {
+	// this function tells the react js with which parameters the dynamic pages should be pre-generated.
+	const client = await MongoClient.connect("mongodb+srv://bhargavi:maruthi@cluster0.xdp8woi.mongodb.net/meetups?retryWrites=true&w=majority");
+	const db = client.db();
+
+	const meetupsCollection = db.collection("meetups");
+
+	const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray();
+
+	client.close();
+
 	return {
-		fallback: false, // if fallback is set to false an error will be generated 404 if different meetupId is entered in URL apart from m1 and m2
-		paths: [
-			{
-				params: {
-					meetupId: "m1",
-				},
-			},
-			{
-				params: {
-					meetupId: "m2",
-				},
-			},
-		],
+		fallback: false,
+		paths: meetups.map((meetup) => ({
+			params: { meetupId: meetup._id.toString() },
+		})),
 	};
 }
 export async function getStaticProps(context) {
 	// fetch data for single meetup
 
 	const meetupId = context.params.meetupId;
-	console.log(meetupId);
+	const client = await MongoClient.connect("mongodb+srv://bhargavi:maruthi@cluster0.xdp8woi.mongodb.net/meetups?retryWrites=true&w=majority");
+	const db = client.db();
+	const meetupsCollection = db.collection("meetups");
+
+	const selectedMeetup = meetupsCollection.findOne({ _id: ObjectId(meetupId) }); //
+
+	client.close();
 	return {
 		props: {
 			meetupData: {
-				id: meetupId,
-				title: "First Meetup",
-				image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Massachusetts_Hall%2C_Harvard_University.JPG/640px-Massachusetts_Hall%2C_Harvard_University.JPG",
-				address: "Alycia Dr, Richmomd",
-				description: "This is a fisrt meetup",
+				id: (await selectedMeetup)._id.toString(),
+				title: selectedMeetup.title,
+				address: selectedMeetup.address,
+				image: selectedMeetup.image,
+				description: selectedMeetup.description,
 			},
 		},
 	};
